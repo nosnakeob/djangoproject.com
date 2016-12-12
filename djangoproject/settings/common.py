@@ -1,6 +1,7 @@
 # Settings for www.djangoproject.com
 import json
 import os
+from base64 import b64decode
 from pathlib import Path
 
 # Utilities
@@ -268,3 +269,4 @@ TRAC_URL = "https://code.djangoproject.com/"
 
 # search settings
 ES_HOST = SECRETS.get('es_host', 'localhost:9200')
+ACRA_SERVER_PUBLIC_KEY = b64decode(SECRETS.get('acra_server_public_key'))

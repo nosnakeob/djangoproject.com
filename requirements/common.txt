@@ -18,3 +18,4 @@ requests==2.12.3
 sorl-thumbnail==12.3
 stripe==1.43.0
 Sphinx==1.4.9
+acrawriter==1.0.0
