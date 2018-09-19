@@ -38,6 +38,9 @@ DATABASES = {
         'USER': 'djangoproject',
         'HOST': SECRETS.get('db_host', ''),
         'PASSWORD': SECRETS.get('db_password', ''),
+        'OPTIONS': {
+            'sslmode': 'disable',
+        },
     },
     'trac': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -45,6 +48,9 @@ DATABASES = {
         'USER': 'code.djangoproject',
         'HOST': SECRETS.get('trac_db_host', ''),
         'PASSWORD': SECRETS.get('trac_db_password', ''),
+        'OPTIONS': {
+            'sslmode': 'disable',
+        },
     }
 }
 
@@ -269,4 +275,4 @@ TRAC_URL = "https://code.djangoproject.com/"
 
 # search settings
 ES_HOST = SECRETS.get('es_host', 'localhost:9200')
-ACRA_SERVER_PUBLIC_KEY = b64decode(SECRETS.get('acra_server_public_key'))
+ACRA_SERVER_PUBLIC_KEY = b64decode(SECRETS.get('acra_storage_public_key'))
