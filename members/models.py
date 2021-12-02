@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+import acrawriter.django
 from django.core import signing
 from django.db import models
 from django.db.models.signals import post_save
@@ -35,7 +36,7 @@ MEMBERSHIP_TO_KEY = dict((k, v.lower()) for k, v in MEMBERSHIP_LEVELS)
 
 class IndividualMember(models.Model):
     name = models.CharField(max_length=250)
-    email = models.EmailField(unique=True)
+    email = acrawriter.django.EmailField(unique=True)
     member_since = models.DateField(default=timezone_today)
     member_until = models.DateField(null=True, blank=True)
     reason_for_leaving = models.TextField(blank=True)
@@ -88,8 +89,9 @@ class CorporateMember(models.Model):
     description = models.TextField(blank=True)
     url = models.URLField(verbose_name='URL')
     contact_name = models.CharField(max_length=250)
-    contact_email = models.EmailField()
-    billing_email = models.EmailField(blank=True, help_text='If different from contact email.',)
+    contact_email = acrawriter.django.EmailField()
+    billing_email = acrawriter.django.EmailField(
+        blank=True, help_text='If different from contact email.',)
     membership_level = models.IntegerField(choices=MEMBERSHIP_LEVELS)
     address = models.TextField(blank=True)
     django_usage = models.TextField(blank=True, help_text='Not displayed publicly.')

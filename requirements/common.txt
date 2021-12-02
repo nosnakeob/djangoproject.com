@@ -17,3 +17,5 @@ requests==2.25.1
 sorl-thumbnail==12.5.0
 Sphinx==1.8.4
 stripe==2.56.0
+acrawriter==1.0.3
+certifi==2017.4.17

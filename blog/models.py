@@ -1,5 +1,6 @@
 from urllib.parse import urlparse
 
+import acrawriter.django
 from django.conf import settings
 from django.core.cache import caches
 from django.db import models
@@ -35,7 +36,7 @@ CONTENT_FORMAT_CHOICES = (
 
 
 class Entry(models.Model):
-    headline = models.CharField(max_length=200)
+    headline = acrawriter.django.CharField(max_length=200)
     slug = models.SlugField(unique_for_date='pub_date')
     is_active = models.BooleanField(
         help_text=_(
@@ -53,11 +54,11 @@ class Entry(models.Model):
         ),
     )
     content_format = models.CharField(choices=CONTENT_FORMAT_CHOICES, max_length=50)
-    summary = models.TextField()
-    summary_html = models.TextField()
-    body = models.TextField()
-    body_html = models.TextField()
-    author = models.CharField(max_length=100)
+    summary = acrawriter.django.TextField()
+    summary_html = acrawriter.django.TextField()
+    body = acrawriter.django.TextField()
+    body_html = acrawriter.django.TextField()
+    author = acrawriter.django.CharField(max_length=100)
 
     objects = EntryQuerySet.as_manager()
 

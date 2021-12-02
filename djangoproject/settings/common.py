@@ -1,6 +1,7 @@
 # Settings for www.djangoproject.com
 import json
 import os
+from base64 import b64decode
 from pathlib import Path
 
 # Utilities
@@ -28,22 +29,30 @@ CACHE_MIDDLEWARE_SECONDS = 60 * 5  # 5 minutes
 
 CACHE_MIDDLEWARE_KEY_PREFIX = 'django'
 
+CSRF_COOKIE_HTTPONLY = True
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'djangoproject',
         'USER': 'djangoproject',
         'HOST': SECRETS.get('db_host', ''),
         'PASSWORD': SECRETS.get('db_password', ''),
         'PORT': SECRETS.get('db_port', ''),
+        'OPTIONS': {
+            'sslmode': 'disable',
+        },
     },
     'trac': {
-        'ENGINE': 'django.db.backends.postgresql',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'code.djangoproject',
         'USER': 'code.djangoproject',
         'HOST': SECRETS.get('trac_db_host', ''),
         'PASSWORD': SECRETS.get('trac_db_password', ''),
         'PORT': SECRETS.get('trac_db_port', ''),
+        'OPTIONS': {
+            'sslmode': 'disable',
+        },
     }
 }
 
@@ -297,3 +306,7 @@ THUMBNAIL_ALTERNATIVE_RESOLUTIONS = [2]
 # dashboard settings
 TRAC_RPC_URL = "https://code.djangoproject.com/rpc"
 TRAC_URL = "https://code.djangoproject.com/"
+
+# search settings
+ES_HOST = SECRETS.get('es_host', 'localhost:9200')
+ACRA_SERVER_PUBLIC_KEY = b64decode(SECRETS.get('acra_storage_public_key', 'default_public_key'))
