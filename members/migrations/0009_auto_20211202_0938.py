@@ -7,13 +7,14 @@ from django.db import migrations
 def forwards(app, schema_editor):
     # need to drop indexes for correct alter table from varchar to bytea
     try:
-        schema_editor.execute('alter table members_individualmember drop CONSTRAINT if exists members_developermember_email_key;')
+        schema_editor.execute(
+            'alter table members_individualmember drop CONSTRAINT if exists members_developermember_email_key;')
         schema_editor.execute('drop index members_developermember_email_41cc5976_like;')
     except Exception as exc:
         print(exc)
 
-class Migration(migrations.Migration):
 
+class Migration(migrations.Migration):
     dependencies = [
         ('members', '0008_auto_20181001_1031'),
     ]
@@ -23,7 +24,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='corporatemember',
             name='billing_email',
-            field=acrawriter.django.EmailField(blank=True, help_text='If different from contact email.', max_length=254),
+            field=acrawriter.django.EmailField(blank=True, help_text='If different from contact email.',
+                                               max_length=254),
         ),
         migrations.AlterField(
             model_name='corporatemember',
