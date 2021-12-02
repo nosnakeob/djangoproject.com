@@ -11,6 +11,8 @@ from django.utils.translation import gettext_lazy as _
 from django_hosts.resolvers import reverse
 from docutils.core import publish_parts
 
+import acrawriter.django
+
 BLOG_DOCUTILS_SETTINGS = {
     'doctitle_xform': False,
     'initial_header_level': 3,
