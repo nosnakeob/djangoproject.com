@@ -395,8 +395,6 @@ blockquote {
     }
 }
 .container {
-    @include clearfix;
-    //reusable container class to center content
     @include respond-min(768px) {
         margin: 0 auto;
         max-width: 1400px;
@@ -407,6 +405,17 @@ blockquote {
         .mdzr-boxshadow & {
             box-shadow: -1200px 0 0 0px #fff;
         }
+    }
+}
+.container--flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.container--flex--wrap--mobile {
+    flex-wrap: wrap;
+    @include respond-min(768px) {
+        flex-wrap: no-wrap;
     }
 }
 
@@ -855,7 +864,7 @@ blockquote {
                 float: left;
                 margin-bottom: -999px;
                 padding: 0 3% 999px 0;
-                width: 30%;
+                width: 23%;
             }
 
             &:first-child {
@@ -1023,14 +1032,6 @@ blockquote {
                 background: url(../img/logo-rackspace.png) no-repeat left center;
                 .mdzr-svg & {
                     background: url(../img/logo-rackspace.svg) no-repeat left center;
-                }
-            }
-
-            &.elastic {
-                background: url(../img/logo-elastic.png) no-repeat left center;
-                .mdzr-svg & {
-                    background: url(../img/logo-elastic.svg) no-repeat left center;
-                    background-size: contain;
                 }
             }
 
@@ -2041,7 +2042,7 @@ h2 + .list-link-soup {
 .headerlink {
     // Permalink styles for sections in docs
     opacity: 0;
-    padding-left: 10px;
+    margin-left: 10px;
     font-size: 0.8em;
     position: relative;
     top: -0.17em;
@@ -2049,6 +2050,9 @@ h2 + .list-link-soup {
     text-decoration: none;
     -webkit-transition: opacity 200ms ease-in-out;
     transition: opacity 200ms ease-in-out;
+    &:focus {
+        opacity: 1;
+    }
 }
 
     h1,
@@ -2183,7 +2187,7 @@ h2 + .list-link-soup {
     }
 }
 
-#doc-versions, #doc-languages {
+#doc-versions, #doc-languages, #faq-link {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
 
@@ -2201,6 +2205,9 @@ h2 + .list-link-soup {
             padding: 8px 15px;
             border: 1px solid $gray-line;
             border-radius: 4px;
+        }
+        &.current-link {
+            display: inline-block;
         }
 
         a {
@@ -2253,12 +2260,6 @@ h2 + .list-link-soup {
 #outdated-warning {
     background-color: $red-light;
     color: $red-dark;
-}
-
-#s-getting-help {
-    // hiding getting help section because we moved it to sidebar, but because of docs being served
-    // on readthedocs, we still want to keep the content in.
-    display: none;
 }
 
 #docs-content {
@@ -2348,7 +2349,7 @@ h2 + .list-link-soup {
 
 }
 
-dl.function, dl.class, dl.method, dl.attribute, dl.exception {
+dl.function, dl.class, dl.method, dl.classmethod, dl.staticmethod, dl.attribute, dl.exception {
     dt {
         font-weight: 700;
     }
@@ -2588,7 +2589,7 @@ form {
         padding: 6px 14% 8px 10px;
         text-indent: 0;
         vertical-align: middle;
-        width: 82%;
+        width: 83%;
 
         @include respond-min(768px) {
             padding: 6px 18% 8px 10px;
@@ -2726,7 +2727,19 @@ form {
             }
         }
     }
+    &.search {
+        @include respond-min(768px) {
+            flex: 0 0 40%;
+            margin: 10px 0;
+        }
+        flex: 0 0 100%;
+        margin: 0 0 10px 0;
+        button {
+            top: 19%;
+        }
+    }
 }
+
 
 
 form.donate {
@@ -3103,18 +3116,33 @@ form .footnote {
     }
 }
 
-table.django-supported-versions {
+table.django-supported-versions, table.django-unsupported-versions {
     border: 1px solid black;
     text-align: center;
-    tr {
-        background-color: $green-very-light;
-        th, td {
-            padding: 5px;
-        }
+    th, td {
+        padding: 5px;
     }
-    tr.unsupported {
-        background-color: $red-light;
-    }
+}
+
+table.django-supported-versions tr {
+    background-color: $green-very-light;
+}
+
+table.django-unsupported-versions tr {
+    background-color: $red-light;
+}
+
+/* Corporate membership list page */
+
+ul.corporate-members li {
+    min-height: 160px;
+}
+
+.corporate-member-logo {
+    float: right;
+    max-height: 150px;
+    max-width: 150px;
+    padding: 0 0 10px 10px;
 }
 
 /* Messages */
@@ -3183,7 +3211,7 @@ table.django-supported-versions {
     }
 }
 
-.snippet {
+.code-block-caption, .snippet {
     .btn-clipboard {
         float: right;
         cursor: pointer;

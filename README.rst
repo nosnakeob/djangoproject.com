@@ -1,22 +1,22 @@
 djangoproject.com source code
 =============================
 
-.. image:: https://travis-ci.org/django/djangoproject.com.svg?branch=master
-    :target: https://travis-ci.org/django/djangoproject.com
+.. image:: https://github.com/django/djangoproject.com/workflows/Tests/badge.svg?branch=main
+    :target: https://github.com/django/djangoproject.com/actions
 
-.. image:: https://coveralls.io/repos/django/djangoproject.com/badge.svg?branch=master
-    :target: https://coveralls.io/r/django/djangoproject.com?branch=master
+.. image:: https://coveralls.io/repos/django/djangoproject.com/badge.svg?branch=main
+    :target: https://coveralls.io/r/django/djangoproject.com?branch=main
 
 To run locally, do the usual:
 
-#. Create a Python 3.4 virtualenv
+#. Create a Python 3.6 virtualenv
 
 #. Install dependencies::
 
     pip install -r requirements/dev.txt
     npm install
 
-   Alternatively use the make task::
+   Alternatively, use the make task::
 
     make install
 
@@ -33,21 +33,22 @@ To run locally, do the usual:
       "trac_db_host": "localhost",
       "trac_db_password": "secret" }
 
-   Add `export DJANGOPROJECT_DATA_DIR=~/.djangoproject` (without the backticks)
-   to your ~/.bashrc (or ~/.zshrc if you're using zsh) file and then run
-   `source ~/.bashrc` (or `source ~/.zshrc`) to load the changes.
+#. Add `export DJANGOPROJECT_DATA_DIR=~/.djangoproject` (without the backticks)
+   to your ~/.bashrc (or ~/.zshrc if you're using zsh, ~/.bash_profile if
+   you're on macOS and using bash) file and then run `source ~/.bashrc` (or
+   `source ~/.zshrc`, or `source ~/.bash_profile`) to load the changes.
 
 #. Create databases::
 
-    createuser -d djangoproject
+    createuser -d djangoproject --superuser
     createdb -O djangoproject djangoproject
-    createuser -d code.djangoproject
+    createuser -d code.djangoproject --superuser
     createdb -O code.djangoproject code.djangoproject
 
 #. Setting up database access
 
    If you are using the default postgres configuration, chances are you will
-   have to give a password for the newly created users in order to be able to
+   have to give a password for the newly created users to be able to
    use them for Django::
 
      psql
@@ -71,7 +72,7 @@ To run locally, do the usual:
 
     ./manage.py loaddata dev_sites
 
-#. For docs::
+#. For docs (next step requires ``gettext``)::
 
     ./manage.py loaddata doc_releases
     ./manage.py update_docs
@@ -98,25 +99,28 @@ To run locally, do the usual:
 
      127.0.0.1  docs.djangoproject.example www.djangoproject.example dashboard.djangoproject.example
 
-   If you're on Mac OS and don't feel like editing the ``/etc/hosts`` file
+   This is unnecessary with some browsers (e.g. Opera and Chromium/Chrome) as
+   they handle localhost subdomains automatically.
+
+   If you're on macOS and don't feel like editing the ``/etc/hosts`` file
    manually, there is a great preference pane called `Hosts.prefpane`_. On
-   Ubuntu there is a `built-in network admin`_ GUI to do the same. Remember
+   Ubuntu, there is a `built-in network admin`_ GUI to do the same. Remember
    both require admin privileges, just like you'd need when editing
    ``/etc/hosts`` with your favorite editor.
 
    If you don't have admin rights but have an internet connection, you can use a
-   service like `xip.io <http://xip.io>`_. In that case you'll also have to
+   service like `xip.io <http://xip.io>`_. In that case, you'll also have to
    update `ALLOWED_HOSTS` in `djangoproject/settings/dev.py` as well as the
    content of the `django_site` table in your database.
 
    .. _`Hosts.prefpane`: https://github.com/specialunderwear/Hosts.prefpane
    .. _`built-in network admin`: https://help.ubuntu.com/community/NetworkAdmin
 
-#. Compile the CSS (only the source SCSS files are stored in the repostiory)::
+#. Compile the CSS (only the source SCSS files are stored in the repository)::
 
     make compile-scss
 
-#. Finally run the server::
+#. Finally, run the server::
 
     make run
 
@@ -128,13 +132,13 @@ To run locally, do the usual:
 Running the tests
 -----------------
 
-We use `Travis-CI <https://travis-ci.org/>`_ for continuous testing and
+We use GitHub actions for continuous testing and
 `GitHub <https://github.com/>`_ pull request integration. If you're familiar
 with those systems you should not have any problems writing tests.
 
 Our test results can be found here:
 
-    https://travis-ci.org/django/djangoproject.com
+    https://github.com/django/djangoproject.com/actions
 
 For local development don't hesitate to install
 `tox <https://tox.readthedocs.io/>`_ to run the website's test suite.
@@ -143,7 +147,7 @@ Then in the root directory (next to the ``manage.py`` file) run::
 
     tox
 
-Behind the scenes this will run the usual ``./manage.py test`` management
+Behind the scenes, this will run the usual ``./manage.py test`` management
 command with a preset list of apps that we want to test as well as
 `flake8 <https://flake8.readthedocs.io/>`_ for code quality checks. We
 collect test coverage data as part of that tox run, to show the result
@@ -177,7 +181,7 @@ their ability to use the technologies in use on the site, such as HTML5, CSS3,
 SVG, webfonts.
 
 We're following `Mozilla's example <https://wiki.mozilla.org/Support/Browser_Support>`_
-when it comes to categorize browser support.
+when it comes to categorizing browser support.
 
 - Desktop browsers, except as noted below, are **A grade**, meaning that
   everything needs to work.
@@ -207,7 +211,7 @@ Run the following to compile the Scss files to CSS::
 
     make compile-scss-debug
 
-Alternatively you can also run the following command in a separate shell
+Alternatively, you can also run the following command in a separate shell
 to continuously watch for changes to the Scss files and automatically compile
 to CSS::
 
@@ -239,7 +243,7 @@ Check out the ``Procfile`` file for all the process names.
 JavaScript libraries
 --------------------
 
-This project uses `Bower <http://bower.io/>`_ to manage JavaScript libraries.
+This project uses `Bower <https://bower.io/>`_ to manage JavaScript libraries.
 
 At any time, you can run it to install a new library (e.g., ``jquery-ui``)::
 
@@ -260,10 +264,6 @@ library from ``bower.json``, you will need to commit the changes in
 Documentation search
 --------------------
 
-In case you want to use the documentation search you have to install
-Elasticsearch locally and start it on port ``9200`` (the default).
-See the `official Elasticsearch docs`_ for how to set it up.
-
 When running ``./manage.py update_docs`` to build all documents it will also
 automatically index every document it builds in the search engine as well.
 In case you've already built the documents and would like to reindex the
@@ -274,8 +274,6 @@ search index run the command::
 This is also the right command to run when you work on the search feature
 itself. You can pass the ``-d`` option to try to drop the search index
 first before indexing all the documents.
-
-.. _`official Elasticsearch docs`: http://www.elastic.co/guide/en/elasticsearch/reference/current/setup.html
 
 Updating metrics from production
 --------------------------------
@@ -289,3 +287,105 @@ from a copy of the production database and saved to the
 To update this file, run::
 
     ./manage.py dumpdata dashboard --exclude dashboard.Datum --indent=4 > dashboard_production_metrics.json
+
+Translation
+-----------
+
+We're using Transifex to help manage the translation process. The
+``requirements/dev.txt`` file will install the Transifex client.
+
+Before using the command-line Transifex client, create ``~/.transifexrc``
+according to the instructions at
+https://docs.transifex.com/client/client-configuration. You'll need to be a
+member of the Django team in the `Django
+<https://www.transifex.com/django/>`_ organization at Transifex. For
+information on how to join, please see the `Translations
+<https://docs.djangoproject.com/en/dev/internals/contributing/localizing/#translations>`_
+section of the documentation on contributing to and localizing Django.
+
+Since this repo hosts three separate sites, our ``.po`` files are organized by
+website domain. At the moment, we have:
+
+* ``dashboard/locale/`` contains the translation files for
+  https://dashboard.djangoproject.com
+* ``docs/locale/`` contains the translation files for
+  https://docs.djangoproject.com (only for the strings in this repository;
+  translation of the documentation itself is handled elsewhere)
+* ``locale/`` contains the translation files for https://www.djangoproject.com
+  (including strings from all apps other than ``dashboard`` and ``docs``)
+
+**Important:** To keep this working properly, note that any templates for the
+``dashboard`` and ``docs`` apps **must** be placed in the
+``<app name>/templates/docs/`` directory for their respective app, **not** in
+the ``djangoproject/templates/`` directory.
+
+Updating messages on Transifex
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When there are changes to the messages in the code or templates, a member of
+the translations team will need to update Transifex as follows:
+
+1. Regenerate the English (only) .po file::
+
+    python manage.py makemessages -l en
+
+   (Never update alternate language .po files using makemessages. We'll update
+   the English file, upload it to Transifex, then later pull the .po files with
+   translations down from Transifex.)
+
+2. Push the updated source file to Transifex::
+
+     tx push -s
+
+3. Commit and push the changes to GitHub::
+
+     git commit -m "Updated messages" locale/en/LC_MESSAGES/*
+     git push
+
+Updating translations from Transifex
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Anytime translations on Transifex have been updated, someone should update
+our translation files as follows:
+
+1. Review the translations in Transifex and add to the space-delimited
+   ``LANGUAGES`` list in ``update-translations.sh`` any new languages that have
+   reached 100% translation.
+
+2. Pull the updated translation files::
+
+    ./update-translations.sh
+
+3. Use ``git diff`` to see if any translations have actually changed. If not,
+   you can just revert the .po file changes and stop here.
+
+4. Compile the messages::
+
+    python manage.py compilemessages
+
+5. Run the test suite one more time::
+
+    python manage.py test
+
+6. Commit and push the changes to GitHub::
+
+    git commit -m "Updated translations" locale/*/LC_MESSAGES/*
+    git push
+
+Running Locally with Docker
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+1. Build the images::
+
+    docker-compose build
+
+2. Spin up the containers::
+
+    docker-compose up
+
+3. View the site at http://localhost:8000/
+
+4. Run the tests::
+
+    docker-compose exec web tox
+    docker-compose exec web python manage.py test

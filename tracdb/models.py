@@ -51,7 +51,7 @@ from django.utils.timezone import FixedOffset
 _epoc = datetime.datetime(1970, 1, 1, tzinfo=FixedOffset(0))
 
 
-class time_property(object):
+class time_property:
     """
     Convert Trac timestamps into UTC datetimes.
 
@@ -110,7 +110,7 @@ class Ticket(models.Model):
     description = models.TextField()
     keywords = models.TextField()
 
-    class Meta(object):
+    class Meta:
         db_table = 'ticket'
         managed = False
 
@@ -118,7 +118,7 @@ class Ticket(models.Model):
         return "#%s: %s" % (self.id, self.summary)
 
     def __init__(self, *args, **kwargs):
-        super(Ticket, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # Munge custom fields onto this object. This sucks since it implies
         # querying will work (it won't!) and that writing will work (ditto).
@@ -142,7 +142,7 @@ class TicketCustom(models.Model):
     name = models.TextField()
     value = models.TextField()
 
-    class Meta(object):
+    class Meta:
         db_table = 'ticket_custom'
         managed = False
 
@@ -166,7 +166,7 @@ class TicketChange(models.Model):
     _time = models.BigIntegerField(db_column='time')
     time = time_property('_time')
 
-    class Meta(object):
+    class Meta:
         db_table = 'ticket_change'
         managed = False
         ordering = ['_time']
@@ -180,7 +180,7 @@ class Component(models.Model):
     owner = models.TextField()
     description = models.TextField()
 
-    class Meta(object):
+    class Meta:
         db_table = 'component'
         managed = False
 
@@ -195,7 +195,7 @@ class Version(models.Model):
     _time = models.BigIntegerField(db_column='time')
     time = time_property('_time')
 
-    class Meta(object):
+    class Meta:
         db_table = 'version'
         managed = False
 
@@ -213,7 +213,7 @@ class Milestone(models.Model):
     _completed = models.BigIntegerField(db_column='_completed')
     completed = time_property('completed')
 
-    class Meta(object):
+    class Meta:
         db_table = 'milestone'
         managed = False
 
@@ -228,10 +228,10 @@ class SingleRepoRevisionManager(models.Manager):
     """
     def __init__(self, repo_id):
         self.repo_id = repo_id
-        super(SingleRepoRevisionManager, self).__init__()
+        super().__init__()
 
     def get_queryset(self):
-        qs = super(SingleRepoRevisionManager, self).get_queryset()
+        qs = super().get_queryset()
         return qs.filter(repos=self.repo_id)
 
 
@@ -250,7 +250,7 @@ class Revision(models.Model):
 
     objects = SingleRepoRevisionManager(repo_id=SINGLE_REPO_ID)
 
-    class Meta(object):
+    class Meta:
         db_table = 'revision'
         managed = False
 

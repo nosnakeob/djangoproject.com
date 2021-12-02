@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import CorporateMember, IndividualMember
+from .models import CorporateMember, IndividualMember, Team
 from .utils import get_temporary_image
 
 
@@ -70,7 +70,7 @@ class CorporateMemberListViewTests(TestCase):
         response = self.client.get(self.url)
         self.assertNotContains(response, 'Corporation unapproved')
 
-    def test_view_renders_orgs_alphabetically(self):
+    def test_view_renders_orgs_by_tier(self):
         member = CorporateMember.objects.create(
             display_name='AAA',
             contact_email='c@example.com',
@@ -84,9 +84,14 @@ class CorporateMemberListViewTests(TestCase):
             expiration_date=self.today + timedelta(days=1),
         )
         response = self.client.get(self.url)
+        members = response.context['members']
+        self.assertEqual(
+            sorted(members.keys()),
+            ['bronze', 'diamond', 'gold', 'platinum', 'silver']
+        )
         self.assertQuerysetEqual(
-            response.context['members'],
-            ['<CorporateMember: AAA>', '<CorporateMember: Corporation>']
+            members['silver'],
+            ['<CorporateMember: Corporation>', '<CorporateMember: AAA>']
         )
 
 
@@ -116,3 +121,46 @@ class CorporateMemberJoinViewTests(TestCase):
         member = CorporateMember.objects.latest('id')
         self.assertEqual(member.display_name, data['display_name'])
         self.assertEqual(member.invoice_set.get().amount, data['amount'])
+
+
+class CorporateMemberRenewalViewTests(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.member = CorporateMember.objects.create(
+            display_name='Corporation',
+            contact_email='c@example.com',
+            membership_level=2,
+        )
+
+    def test_get(self):
+        response = self.client.get(self.member.get_renewal_link())
+        self.assertContains(response, 'Become a DSF corporate member')
+        self.assertEqual(response.context['form'].instance, self.member)
+
+    def test_invalid_token(self):
+        url = reverse('members:corporate-members-renew', kwargs={'token': 'aaaaa'})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 404)
+
+
+class TeamListViewTests(TestCase):
+    url = reverse('members:teams')
+
+    @classmethod
+    def setUpTestData(cls):
+        dev = IndividualMember.objects.create(
+            name='DjangoDeveloper',
+            email='developer@example.com',
+        )
+        cls.security_team = Team.objects.create(name='Security team')
+        cls.ops_team = Team.objects.create(name='Ops team', slug='ops', description='Ops stuff.')
+        cls.ops_team.members.add(dev)
+
+    def test_get(self):
+        response = self.client.get(self.url)
+        # Sorted by name
+        self.assertSequenceEqual(response.context['teams'], [self.ops_team, self.security_team])
+        self.assertContains(response, '<h3 id="ops-team">Ops team</h3>')
+        self.assertContains(response, '<p>Ops stuff.</p>')
+        self.assertContains(response, '<ul><li>DjangoDeveloper</li></ul>', html=True)

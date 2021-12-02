@@ -1,58 +1,6 @@
 [
 {
   "model": "releases.release",
-  "pk": "1.4",
-  "fields": {
-    "major": 1,
-    "is_lts": true,
-    "date": "2012-03-23",
-    "iteration": 0,
-    "micro": 0,
-    "minor": 4,
-    "status": "f"
-  }
-},
-{
-  "model": "releases.release",
-  "pk": "1.5",
-  "fields": {
-    "major": 1,
-    "is_lts": false,
-    "date": "2013-02-26",
-    "iteration": 0,
-    "micro": 0,
-    "minor": 5,
-    "status": "f"
-  }
-},
-{
-  "model": "releases.release",
-  "pk": "1.6",
-  "fields": {
-    "major": 1,
-    "is_lts": false,
-    "date": "2013-11-06",
-    "iteration": 0,
-    "micro": 0,
-    "minor": 6,
-    "status": "f"
-  }
-},
-{
-  "model": "releases.release",
-  "pk": "1.7",
-  "fields": {
-    "major": 1,
-    "is_lts": false,
-    "date": "2014-09-02",
-    "iteration": 0,
-    "micro": 0,
-    "minor": 7,
-    "status": "f"
-  }
-},
-{
-  "model": "releases.release",
   "pk": "1.8",
   "fields": {
     "major": 1,
@@ -88,6 +36,104 @@
     "micro": 0,
     "minor": 10,
     "status": "f"
+  }
+},
+{
+  "model": "releases.release",
+  "pk": "1.11",
+  "fields": {
+    "date": "2017-04-04",
+    "eol_date": null,
+    "major": 1,
+    "minor": 11,
+    "micro": 0,
+    "status": "f",
+    "iteration": 0,
+    "is_lts": true
+  }
+},
+{
+  "model": "releases.release",
+  "pk": "2.0",
+  "fields": {
+    "date": "2017-12-02",
+    "eol_date": null,
+    "major": 2,
+    "minor": 0,
+    "micro": 0,
+    "status": "f",
+    "iteration": 0,
+    "is_lts": false
+  }
+},
+{
+  "model": "releases.release",
+  "pk": "2.1",
+  "fields": {
+    "date": "2018-08-01",
+    "eol_date": null,
+    "major": 2,
+    "minor": 1,
+    "micro": 0,
+    "status": "f",
+    "iteration": 0,
+    "is_lts": false
+  }
+},
+{
+  "model": "releases.release",
+  "pk": "2.2",
+  "fields": {
+    "date": "2019-04-01",
+    "eol_date": null,
+    "major": 2,
+    "minor": 2,
+    "micro": 0,
+    "status": "f",
+    "iteration": 0,
+    "is_lts": true
+  }
+},
+{
+  "model": "releases.release",
+  "pk": "3.0",
+  "fields": {
+    "date": "2019-12-02",
+    "eol_date": null,
+    "major": 3,
+    "minor": 0,
+    "micro": 0,
+    "status": "f",
+    "iteration": 0,
+    "is_lts": false
+  }
+},
+{
+  "model": "releases.release",
+  "pk": "3.1",
+  "fields": {
+    "date": "2020-08-04",
+    "eol_date": null,
+    "major": 3,
+    "minor": 1,
+    "micro": 0,
+    "status": "f",
+    "iteration": 0,
+    "is_lts": false
+  }
+},
+{
+  "model": "releases.release",
+  "pk": "3.2",
+  "fields": {
+    "date": "2021-04-06",
+    "eol_date": null,
+    "major": 3,
+    "minor": 2,
+    "micro": 0,
+    "status": "f",
+    "iteration": 0,
+    "is_lts": true
   }
 }
 ]

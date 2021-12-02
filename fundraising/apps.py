@@ -1,7 +1,7 @@
 import stripe
 from django.apps import AppConfig
 from django.conf import settings
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 
 class FundraisingConfig(AppConfig):
@@ -9,5 +9,5 @@ class FundraisingConfig(AppConfig):
     verbose_name = _("Fundraising")
 
     def ready(self):
-        super(FundraisingConfig, self).ready()
+        super().ready()
         stripe.api_key = settings.STRIPE_SECRET_KEY

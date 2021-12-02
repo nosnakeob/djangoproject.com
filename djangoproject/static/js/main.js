@@ -78,8 +78,8 @@ define(function() {
         mods.push('mod/search-key');
     }
 
-    if (hasClass('stripe-custom-checkout')) {
-        mods.push('mod/stripe-custom-checkout');
+    if (hasClass('stripe-donation')) {
+        mods.push('mod/stripe-donation');
     }
 
     if (hasClass('django-hero-form')) {
@@ -94,8 +94,12 @@ define(function() {
         mods.push('mod/messages');
     }
 
-    if (hasClass('snippet')) {
+    if (hasClass('code-block-caption') || hasClass('snippet')) {
         mods.push('mod/clippify');
+    }
+
+    if (hasClass('console-block')) {
+        mods.push('mod/console-tabs');
     }
 
     require(mods);

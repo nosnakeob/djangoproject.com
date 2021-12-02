@@ -7,6 +7,8 @@ ALLOWED_HOSTS = [
     'dashboard.djangoproject.example',
 ] + SECRETS.get('allowed_hosts', [])
 
+LOCALE_MIDDLEWARE_EXCLUDED_HOSTS = ['docs.djangoproject.localhost']
+
 DEBUG = True
 THUMBNAIL_DEBUG = DEBUG
 
@@ -14,6 +16,10 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
         'LOCATION': 'trololololol',
+    },
+    'docs-pages': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'docs-pages',
     },
 }
 
@@ -52,3 +58,9 @@ if DEBUG:
             MIDDLEWARE.index('django.middleware.common.CommonMiddleware') + 1,
             'debug_toolbar.middleware.DebugToolbarMiddleware'
         )
+        MIDDLEWARE.insert(
+            MIDDLEWARE.index('debug_toolbar.middleware.DebugToolbarMiddleware') + 1,
+            'djangoproject.middleware.CORSMiddleware'
+        )
+
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']

@@ -1,17 +1,15 @@
 from urllib.parse import urlparse
 
+import acrawriter.django
 from django.conf import settings
 from django.core.cache import caches
 from django.db import models
 from django.test import RequestFactory
 from django.utils import timezone
 from django.utils.cache import _generate_cache_header_key
-from django.utils.encoding import smart_str
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django_hosts.resolvers import reverse
 from docutils.core import publish_parts
-
-import acrawriter.django
 
 BLOG_DOCUTILS_SETTINGS = {
     'doctitle_xform': False,
@@ -94,13 +92,13 @@ class Entry(models.Model):
             self.summary_html = self.summary
             self.body_html = self.body
         elif self.content_format == 'reST':
-            self.summary_html = publish_parts(source=smart_str(self.summary),
+            self.summary_html = publish_parts(source=self.summary,
                                               writer_name="html",
                                               settings_overrides=BLOG_DOCUTILS_SETTINGS)['fragment']
-            self.body_html = publish_parts(source=smart_str(self.body),
+            self.body_html = publish_parts(source=self.body,
                                            writer_name="html",
                                            settings_overrides=BLOG_DOCUTILS_SETTINGS)['fragment']
-        super(Entry, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
         self.invalidate_cached_entry()
 
     def invalidate_cached_entry(self):

@@ -1,5 +1,5 @@
 {% extends 'fundraising/index.html' %}
-{% load staticfiles %}
+{% load static %}
 
 {% block messages %}
 
@@ -64,6 +64,18 @@
     </ul>
   {% else %}
 </form>
+  {% endif %}
+  {% if past_payments %}
+  <hr />
+    <h2>Your past donations</h2>
+    <ul>
+    {% for payment in past_payments %}
+      <li>
+        ${{ payment.amount }} on {{ payment.date|date:"N jS, Y \a\t P" }}
+        ({{ payment.donation.get_interval_display }})
+      </li>
+    {% endfor %}
+    </ul>
   {% endif %}
 {% endblock %}
 

@@ -91,18 +91,18 @@ class Member(models.Model):
   <li>
     <h2>URLs and views</h2>
     <div class="collapsing-content">
-      <p>A clean, elegant URL scheme is an important detail in a high-quality Web application. Django encourages beautiful URL design and doesn’t put any cruft in URLs, like .php or .asp.</p>
+      <p>A clean, elegant URL scheme is an important detail in a high-quality web application. Django encourages beautiful URL design and doesn’t put any cruft in URLs, like .php or .asp.</p>
       <p>To design URLs for an application, you create a Python module called a URLconf. Like a table of contents for your app, it contains a simple mapping between URL patterns and your views.</p>
       <a class="link-readmore" href="{% url 'document-detail' lang='en' version='stable' url='topics/http/urls' host 'docs' %}">Read more</a>
       {% pygment 'python' %}
-from django.conf.urls import url
+from django.urls import path
 
 from . import views
 
 urlpatterns = [
-    url(r'^bands/$', views.band_listing, name='band-list'),
-    url(r'^bands/(\d+)/$', views.band_detail, name='band-detail'),
-    url(r'^bands/search/$', views.band_search, name='band-search'),
+    path('bands/', views.band_listing, name='band-list'),
+    path('bands/<int:band_id>/', views.band_detail, name='band-detail'),
+    path('bands/search/', views.band_search, name='band-search'),
 ]
       {% endpygment %}
       {% pygment 'python' %}
@@ -162,7 +162,7 @@ class BandContactForm(forms.Form):
   <li>
     <h2>Authentication</h2>
     <div class="collapsing-content">
-      <p>Django comes with a full-featured and secure authentication system. It handles user accounts, groups, permissions and cookie-based user sessions. This lets you easily build sites that let users to create accounts and safely log in/out.</p>
+      <p>Django comes with a full-featured and secure authentication system. It handles user accounts, groups, permissions and cookie-based user sessions. This lets you easily build sites that allow users to create accounts and safely log in/out.</p>
       <a class="link-readmore" href="{% url 'document-detail' lang='en' version='stable' url='topics/auth' host 'docs' %}">Read more</a>
       {% pygment 'python' %}
 from django.contrib.auth.decorators import login_required
@@ -197,19 +197,19 @@ admin.site.register(Member, MemberAdmin)  # Use the customized options
   <li>
     <h2>Internationalization</h2>
     <div class="collapsing-content">
-      <p>Django offers full support for translating text into different languages, plus locale-specific formatting of dates, times, numbers and time zones. It lets developers and template authors specify which parts of their apps should be translated or formatted for local languages and cultures, and it uses these hooks to localize Web applications for particular users according to their preferences.</p>
+      <p>Django offers full support for translating text into different languages, plus locale-specific formatting of dates, times, numbers, and time zones. It lets developers and template authors specify which parts of their apps should be translated or formatted for local languages and cultures, and it uses these hooks to localize web applications for particular users according to their preferences.</p>
       <a class="link-readmore" href="{% url 'document-detail' lang='en' version='stable' url='topics/i18n' host 'docs' %}">Read more</a>
 
       {% pygment 'python' %}
 from django.shortcuts import render
-from django.utils.translation import ugettext
+from django.utils.translation import gettext
 
 def homepage(request):
     """
     Shows the homepage with a welcome message that is translated in the
     user's language.
     """
-    message = ugettext('Welcome to our site!')
+    message = gettext('Welcome to our site!')
     return render(request, 'homepage.html', {'message': message})
       {% endpygment %}
 

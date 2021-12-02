@@ -5,8 +5,14 @@ from functools import reduce
 from pathlib import Path
 
 from django.conf import settings
+from django.contrib.postgres.fields.jsonb import JSONField
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import (
+    SearchQuery, SearchRank, SearchVectorField, TrigramSimilarity,
+)
 from django.core.cache import cache
 from django.db import models, transaction
+from django.db.models import Prefetch
 from django.utils.functional import cached_property
 from django.utils.html import strip_tags
 from django.utils.text import unescape_entities
@@ -15,6 +21,7 @@ from django_hosts.resolvers import reverse
 from releases.models import Release
 
 from . import utils
+from .search import DEFAULT_TEXT_SEARCH_CONFIG, TSEARCH_CONFIG_LANGUAGES
 
 
 class DocumentReleaseManager(models.Manager):
@@ -91,7 +98,7 @@ class DocumentRelease(models.Model):
                 self.version,
                 settings.CACHE_MIDDLEWARE_SECONDS,
             )
-        super(DocumentRelease, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     @property
     def version(self):
@@ -107,6 +114,10 @@ class DocumentRelease(models.Model):
     @property
     def is_dev(self):
         return self.release is None
+
+    @property
+    def is_preview(self):
+        return not self.is_dev and self.release.date is None
 
     @property
     def is_supported(self):
@@ -153,11 +164,21 @@ class DocumentRelease(models.Model):
                 # We don't care about indexing documents with no body or title, or partially translated
                 continue
 
+            document_path = _clean_document_path(document['current_page_name'])
+            document['slug'] = Path(document_path).parts[-1]
+            document['parents'] = ' '.join(Path(document_path).parts[:-1])
             Document.objects.create(
                 release=self,
-                path=_clean_document_path(document['current_page_name']),
+                path=document_path,
                 title=unescape_entities(strip_tags(document['title'])),
+                metadata=document,
+                config=TSEARCH_CONFIG_LANGUAGES.get(self.lang[:2], DEFAULT_TEXT_SEARCH_CONFIG),
             )
+        for document in self.documents.all():
+            document.metadata['breadcrumbs'] = list(
+                Document.objects.breadcrumbs(document).values('title', 'path')
+            )
+            document.save(update_fields=('metadata',))
 
 
 def _clean_document_path(path):
@@ -194,11 +215,30 @@ class DocumentManager(models.Manager):
         if parent_paths:
             or_queries = [models.Q(path=str(path)) for path in parent_paths]
             return (self.filter(reduce(operator.or_, or_queries))
-                        .filter(release=document.release)
+                        .filter(release_id=document.release_id)
                         .exclude(pk=document.pk)
                         .order_by('path'))
         else:
             return self.none()
+
+    def search(self, query_text, release):
+        """Use full-text search to return documents matching query_text."""
+        query_text = query_text.strip()
+        if query_text:
+            search_query = SearchQuery(query_text, config=models.F('config'))
+            search_rank = SearchRank(models.F('search'), search_query)
+            similarity = TrigramSimilarity('title', query_text)
+            return self.get_queryset().prefetch_related(
+                Prefetch('release', queryset=DocumentRelease.objects.only('lang', 'release')),
+                Prefetch('release__release', queryset=Release.objects.only('version')),
+            ).filter(
+                release_id=release.id,
+                search=search_query,
+            ).annotate(rank=search_rank + similarity).order_by('-rank').only(
+                'title', 'path', 'metadata', 'release',
+            )
+        else:
+            return self.get_queryset().none()
 
 
 class Document(models.Model):
@@ -212,10 +252,17 @@ class Document(models.Model):
     )
     path = models.CharField(max_length=500)
     title = models.CharField(max_length=500)
+    metadata = JSONField(default=dict)
+    search = SearchVectorField(null=True, editable=False)
+    config = models.SlugField(default=DEFAULT_TEXT_SEARCH_CONFIG)
 
     objects = DocumentManager()
 
     class Meta:
+        indexes = [
+            models.Index(fields=['release', 'title'], name='document_release_title_idx'),
+            GinIndex(fields=['search']),
+        ]
         unique_together = ('release', 'path')
 
     def __str__(self):
@@ -223,6 +270,10 @@ class Document(models.Model):
 
     def get_absolute_url(self):
         return document_url(self)
+
+    @cached_property
+    def content_raw(self):
+        return strip_tags(unescape_entities(self.metadata['content']).replace(u'¶', ''))
 
     @cached_property
     def root(self):

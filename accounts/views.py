@@ -84,7 +84,7 @@ def get_user_stats(user):
         info = trac_stats.get_user_stats(user.username)
         # Hide any stat with a value = 0 so that we don't accidentally insult
         # non-contributors.
-        for k, v in info.items():
+        for k, v in list(info.items()):
             if v == 0:
                 info.pop(k)
         c.set(key, info, 60 * 60)
@@ -93,7 +93,7 @@ def get_user_stats(user):
 
 class JSONResponse(HttpResponse):
     def __init__(self, obj):
-        super(JSONResponse, self).__init__(
+        super().__init__(
             json.dumps(obj, indent=(2 if settings.DEBUG else None)),
             content_type='application/json',
         )

@@ -10,101 +10,20 @@
 },
 {
   "model": "docs.documentrelease",
-  "pk": 11,
-  "fields": {
-    "lang": "en",
-    "release": "1.7",
-    "is_default": false
-  }
-},
-{
-  "model": "docs.documentrelease",
-  "pk": 12,
+  "pk": 31,
   "fields": {
     "lang": "fr",
-    "release": "1.7",
+    "release": "3.2",
     "is_default": false
   }
 },
 {
   "model": "docs.documentrelease",
-  "pk": 13,
+  "pk": 32,
   "fields": {
     "lang": "en",
-    "release": "1.8",
-    "is_default": false
-  }
-},
-{
-  "model": "docs.documentrelease",
-  "pk": 14,
-  "fields": {
-    "lang": "fr",
-    "release": "1.8",
-    "is_default": false
-  }
-},
-{
-  "model": "docs.documentrelease",
-  "pk": 15,
-  "fields": {
-    "lang": "en",
-    "release": "1.9",
+    "release": "3.2",
     "is_default": true
-  }
-},
-{
-  "model": "docs.documentrelease",
-  "pk": 16,
-  "fields": {
-    "lang": "fr",
-    "release": "1.9",
-    "is_default": false
-  }
-},
-{
-  "model": "docs.documentrelease",
-  "pk": 17,
-  "fields": {
-    "lang": "es",
-    "release": "1.9",
-    "is_default": false
-  }
-},
-{
-  "model": "docs.documentrelease",
-  "pk": 18,
-  "fields": {
-    "lang": "ja",
-    "release": "1.9",
-    "is_default": false
-  }
-},
-{
-  "model": "docs.documentrelease",
-  "pk": 19,
-  "fields": {
-    "lang": "id",
-    "release": "1.9",
-    "is_default": false
-  }
-},
-{
-  "model": "docs.documentrelease",
-  "pk": 20,
-  "fields": {
-    "lang": "en",
-    "release": "1.10",
-    "is_default": false
-  }
-},
-{
-  "model": "docs.documentrelease",
-  "pk": 21,
-  "fields": {
-    "lang": "pt-br",
-    "release": "1.9",
-    "is_default": false
   }
 }
 ]

@@ -25,6 +25,19 @@
 <h1>Support the Django Software Foundation!</h1>
 
 {% donation_form_with_heart %}
+  
+<h1>Other ways to give</h1>
+<ul>
+  <li><a href="https://django.threadless.com/" target="_blank">Official merchandise store</a> - 
+    Buy official t-shirts, accessories, and more to support Django.</li>
+  <li><a href="https://github.com/sponsors/django" target="_blank">Sponsor Django via GitHub Sponsors</a>.</li>
+  <li><a href="/foundation/donate/#amazon-smile">Amazon Smile</a> - When you
+    shop at Amazon, you can nominate for 0.5% of the purchase price of your
+    eligible purchases to be donated to the DSF.</li>
+  <li><a href="/foundation/donate/#benevity-giving">Benevity Workplace Giving
+    Program</a> - If your employer participates, you can make donations to the
+    DSF via payroll deduction.</li>
+</ul>
 
 <h2 id="why-give">Why give to the Django Software Foundation?</h2>
 
@@ -39,7 +52,7 @@ projects such as <a href="#django-girls">Django Girls</a>.</li>
 <li>Providing financial assistance to individuals so they can attend major
 conferences and events.</li>
 <li>Funding the <a href="#fellowship-program">Django Fellowship program</a>,
-which provides full­-time staff to perform community management tasks in the
+which provides full-time staff to perform community management tasks in the
 Django community.</li>
 </ul>
 
@@ -50,23 +63,25 @@ about donations.</p>
 
 <p>The biggest expense of the <abbr title="Django Software Foundation">DSF</abbr>
   is the Django Fellowship program. It's a project where
-  <a href="#who-is-the-django-fellow">a paid contractor</a> is engaged to
+  <a href="#who-are-the-django-fellows">paid contractors</a> are engaged to
   manage some of the administrative and community management tasks of the
   Django project to support rapid development of Django itself.</p>
 
-<p><strong>The first year of the Django Fellowship program was very successful.</strong>
-  The Django Fellow triages 10-15 new tickets each week and reviews and merges
-  around fifteen non-trivial patches a week from community members and core
-  developers. For the first time in Django's history, we had releases according
-  to schedule (Django 1.8 and 1.9). You can read a retrospective on the things
-  that were accomplished in <a href="/weblog/2015/jan/21/django-fellowship-retrospective/">
-  the first three months of the program</a> as well as
-  <a href="/weblog/2015/dec/17/fellowship-2015-retrospective/"> for the rest of
-  2015</a> on our blog.</p>
+<p><strong>The Django Fellowship program has a major positive impact on how
+  Django is developed and maintained.</strong>
+  The Django Fellows triage 10-15 new tickets each week and review and merge
+  around fifteen non-trivial patches a week from the community. Release
+  blocking and severe bugs aren't postponed indefinitely. Major releases happen
+  according to an 8 month schedule and bug fix releases occur monthly.</p>
 
-<p>The program has a major positive impact on how Django is developed and
-   maintained. Release blocking and severe bugs are not postponed indefinitely.
-   The Django Fellow is a resource to help review patches and contributions
+<p>For more details, you can read retrospectives for the
+  <a href="/weblog/2015/jan/21/django-fellowship-retrospective/"> first three
+  months of the program</a>,
+  <a href="/weblog/2015/dec/17/fellowship-2015-retrospective/">2015</a>, and
+  <a href="/weblog/2016/dec/28/fellowship-2016-retrospective/">2016</a>.
+</p>
+
+<p>The Django Fellows are a resource to help review patches and contributions
    from the community, and the community loves that:</p>
 
    {% if testimonial %}
@@ -78,7 +93,7 @@ about donations.</p>
 
 <p><strong>If you use Django on a daily basis and care about the development of Django
    itself, you should donate today</strong> (may be <a href="/foundation/donate/#tax-deductible">tax deductible</a>).
-   Only with your support can we make sure that the Web framework you base your work on
+   Only with your support can we make sure that the web framework you base your work on
    can grow to be even better in the coming years.</p>
 
 <h2 id="django-girls">Django Girls Outreach</h2>
@@ -90,9 +105,9 @@ who want to learn to code. The workshop serves as an introduction to Python and
 Django, where attendees learn usable skills to build their first web app.</p>
 
 <p>Django Girls workshop attendees go on to organize their own workshops, lead
-in their community, and secure full­-time jobs as developers. Read their stories
+in their community, and secure full-time jobs as developers. Read their stories
 in the “Your Django Story” series on the <a href="http://blog.djangogirls.org/">
-Django Girls blog</a>.
+Django Girls blog</a>.</p>
 
 <p>In 2015, the Django Software Foundation contributed $5,400 to eighteen
 Django Girls workshops around the world. Here's what some of the organizers had
@@ -123,7 +138,7 @@ instead of searching for sponsors!</p>
 </blockquote>
 
 <blockquote>
-<p><a href="http://pyfound.blogspot.kr/2015/10/django-girls-seoul-great-success.html">
+<p><a href="https://pyfound.blogspot.kr/2015/10/django-girls-seoul-great-success.html">
 Django Girls Seoul</a> had 425 applicants from 11 different countries ages
 ranging from 16 to 50 years old. After acceptances, we had about 105 people to
 feed and caffeinate! Thanks to Django's sponsorship we could get all of our
@@ -135,16 +150,6 @@ into a Korean Business culture, I guess. This made us even more thankful for
 our friends at the DSF!</p>
 <em>Rachell - Seoul, South Korea</em>
 </blockquote>
-
-<h1>Other ways to give</h1>
-<ul>
-  <li><a href="/foundation/donate/#benevity-giving">Benevity Workplace Giving
-    Program</a> - If your employer participates, you can make donations to the
-    DSF via payroll deduction.</li>
-  <li><a href="/foundation/donate/#amazon-smile">Amazon Smile</a> - When you
-    shop at Amazon, you can nominate for 0.5% of the purchase price of your
-    eligible purchases to be donated to the DSF.</li>
-</ul>
 
 <hr style="margin: 40px 0" />
 
@@ -161,24 +166,47 @@ our friends at the DSF!</p>
 {% block content-extra %}
   <div class="layout-tertiary" id="about">
     <div class="container">
-        <h2>What is the Django Software Foundation?</h2>
-        <p>Development of Django is supported by an independent foundation
-          established as a 501(c)(3) non-profit. Like most open-source foundations,
-          the goal of the <a href="/foundation/">Django Software Foundation</a>
-          is to promote, support, and advance the Django Web framework. If you're
-          interested in how the Django Software Foundation supports the Django
-          Web framework, we published a
-          <a href="/weblog/2015/jan/08/django-software-foundation-2014/">Summary
+      <h2>What is the Django Software Foundation?</h2>
+      <p>Development of Django is supported by an independent foundation
+        established as a 501(c)(3) non-profit. Like most open-source foundations,
+        the goal of the <a href="/foundation/">Django Software Foundation</a>
+        is to promote, support, and advance the Django web framework. If you're
+        interested in how the Django Software Foundation supports the Django
+        web framework, we published a
+        <a href="/weblog/2015/jan/08/django-software-foundation-2014/">Summary
           of 2014. </a>
-        </p>
+      </p>
 
-        <h2 id="who-is-the-django-fellow">Who is the Django Fellow?</h2>
-        <p><strong>Tim Graham</strong> - a member of the core team for several years. For
-        the 12 months before the fellowship began, he was a major contributor,
-        reviewing and merging pull requests. Tim was contracted as a full-time
-        Fellow for the duration of the 3 month pilot and continued when the
-        program was renewed in March 2015.</p>
-    </div>
+      <h2 id="who-are-the-django-fellows">Who are the Django Fellows?</h2>
+
+      <p>There are currently two Django Fellows:</p>
+
+      <p><strong><a href="https://github.com/carltongibson">Carlton Gibson</a>
+        (2018-present)</strong> - a longtime Django user, core contributor to
+        Django REST Framework, maintainer of Django Filter and Django Crispy
+        Forms, and a contributor to many other packages in the Django ecosystem.
+        Carlton <a href="https://www.djangoproject.com/weblog/2018/jan/12/dsf-welcomes-carlton-gibson-its-newest-fellow/">
+        began as a part-time Fellow in January 2018</a>.</p>
+      <p><strong><a href="https://github.com/felixxm">Mariusz Felisiak</a>
+        (2019-present)</strong> - a member of the Django team since 2017,
+        focusing on the ORM and Oracle back-end, along with triaging tickets,
+        reviewing pull requests, and backporting changes. He has contributed to
+        more than a dozen open-source projects. Mariusz
+        <a href="https://www.djangoproject.com/weblog/2019/jan/29/dsf-welcomes-mariusz-felisiak-its-newest-fellow/">
+        began as a full-time Fellow in April 2019</a>.
+      </p>
+
+      <p>Former Django Fellows:</p>
+
+      <p><strong><a href="https://github.com/timgraham">Tim Graham</a> (2014-
+        2019)</strong> - the inaugural Django Fellow, a member of the Django
+        team since 2010, and a longtime major contributor and reviewer. In 2018
+        Tim transitioned to part-time and in 2019 retired after four years of
+        service.</p>
+      <p><strong><a href="https://github.com/berkerpeksag">Berker Peksağ</a>
+        (2014)</strong> - a core developer on CPython and Gunicorn, Berker
+        worked as Fellow during the 3 month pilot, supporting Tim
+        part-time.</p>
     </div>
   </div>
 {% endblock %}

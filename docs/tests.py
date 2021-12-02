@@ -1,5 +1,6 @@
 import datetime
 import os
+from http import HTTPStatus
 from operator import attrgetter
 from pathlib import Path
 
@@ -7,11 +8,13 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.template import Context, Template
 from django.test import TestCase
-from django.urls import set_urlconf
+from django.urls import reverse, set_urlconf
 
+from djangoproject.urls import www as www_urls
 from releases.models import Release
 
 from .models import Document, DocumentRelease
+from .search import DOCUMENT_SEARCH_VECTOR
 from .sitemaps import DocsSitemap
 from .utils import get_doc_path
 
@@ -20,12 +23,25 @@ class ModelsTests(TestCase):
 
     def test_dev_is_supported(self):
         """
-        Document for a release without a date ("dev") is supported.
+        Document without a release ("dev") is supported.
         """
         d = DocumentRelease.objects.create()
 
         self.assertTrue(d.is_supported)
         self.assertTrue(d.is_dev)
+        self.assertFalse(d.is_preview)
+
+    def test_preview_is_supported(self):
+        """
+        Document with a release without a date (alpha/beta/rc) is supported as
+        "preview".
+        """
+        r = Release.objects.create(version='3.0', date=None)
+        d = DocumentRelease.objects.create(release=r)
+
+        self.assertTrue(d.is_supported)
+        self.assertFalse(d.is_dev)
+        self.assertTrue(d.is_preview)
 
     def test_current_is_supported(self):
         """
@@ -39,6 +55,7 @@ class ModelsTests(TestCase):
 
         self.assertTrue(d.is_supported)
         self.assertFalse(d.is_dev)
+        self.assertFalse(d.is_preview)
 
     def test_previous_is_supported(self):
         """
@@ -53,6 +70,7 @@ class ModelsTests(TestCase):
 
         self.assertTrue(d.is_supported)
         self.assertFalse(d.is_dev)
+        self.assertFalse(d.is_preview)
 
     def test_old_is_unsupported(self):
         """
@@ -67,6 +85,7 @@ class ModelsTests(TestCase):
 
         self.assertFalse(d.is_supported)
         self.assertFalse(d.is_dev)
+        self.assertFalse(d.is_preview)
 
     def test_most_recent_micro_release_considered(self):
         """
@@ -87,6 +106,7 @@ class ModelsTests(TestCase):
         # Since 1.8.1 is still supported, docs show up as supported.
         self.assertTrue(d.is_supported)
         self.assertFalse(d.is_dev)
+        self.assertFalse(d.is_preview)
 
 
 class ManagerTests(TestCase):
@@ -123,6 +143,31 @@ class ManagerTests(TestCase):
         self.assertEqual(list(get('3.0')), [])
 
 
+class RedirectsTests(TestCase):
+
+    @classmethod
+    def tearDownClass(cls):
+        # cleanup URLconfs changed by django-hosts
+        set_urlconf(None)
+        super().tearDownClass()
+
+    def test_team_url(self):
+        # This URL is linked from the docs.
+        self.assertEqual('/foundation/teams/', reverse('members:teams', urlconf=www_urls))
+
+    def test_internals_team(self):
+        response = self.client.get(
+            '/en/dev/internals/team/',
+            HTTP_HOST='docs.djangoproject.localhost:8000',
+        )
+        self.assertRedirects(
+            response,
+            'https://www.djangoproject.com/foundation/teams/',
+            status_code=HTTPStatus.MOVED_PERMANENTLY,
+            fetch_redirect_response=False,
+        )
+
+
 class SearchFormTestCase(TestCase):
     fixtures = ['doc_test_fixtures']
 
@@ -134,7 +179,7 @@ class SearchFormTestCase(TestCase):
     def tearDownClass(cls):
         # cleanup URLconfs changed by django-hosts
         set_urlconf(None)
-        super(SearchFormTestCase, cls).tearDownClass()
+        super().tearDownClass()
 
     def test_empty_get(self):
         response = self.client.get('/en/dev/search/',
@@ -265,12 +310,177 @@ class UpdateDocTests(TestCase):
 
 
 class SitemapTests(TestCase):
+    fixtures = ['doc_test_fixtures']
+
+    @classmethod
+    def tearDownClass(cls):
+        # cleanup URLconfs changed by django-hosts
+        set_urlconf(None)
+        super().tearDownClass()
+
+    def test_sitemap_index(self):
+        response = self.client.get('/sitemap.xml', HTTP_HOST='docs.djangoproject.localhost:8000')
+        self.assertContains(response, '<sitemap>', count=2)
+        self.assertContains(response, '<loc>http://docs.djangoproject.localhost:8000/sitemap-en.xml</loc>')
 
     def test_sitemap(self):
         doc_release = DocumentRelease.objects.create()
         document = Document.objects.create(release=doc_release)
-        sitemap = DocsSitemap()
+        sitemap = DocsSitemap('en')
         urls = sitemap.get_urls()
         self.assertEqual(len(urls), 1)
         url_info = urls[0]
         self.assertEqual(url_info['location'], document.get_absolute_url())
+
+    def test_sitemap_404(self):
+        response = self.client.get('/sitemap-xx.xml', HTTP_HOST='docs.djangoproject.localhost:8000')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(
+            response.context['exception'],
+            "No sitemap available for section: 'xx'"
+        )
+
+
+class DocumentManagerTest(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.release = DocumentRelease.objects.create()
+        cls.release_fr = DocumentRelease.objects.create(lang='fr')
+        documents = [
+            {
+                'metadata': {
+                    'body': (
+                        '<div class="section" id="s-generic-views">\n<span id="generic-views"></span>'
+                        '<h1>Generic views<a class="headerlink" href="#generic-views" title="Permalink to this headline">¶</a></h1>\n'
+                        '<p>See <a class="reference internal" href="../../../ref/class-based-views/">'
+                        '<span class="doc">Built-in class-based views API</span></a>.</p>\n</div>\n'
+                    ),
+                    'breadcrumbs': [],
+                    'parents': 'topics http',
+                    'slug': 'generic-views',
+                    'title': 'Generic views',
+                    'toc': '<ul>\n<li><a class="reference internal" href="#">Generic views</a></li>\n</ul>\n'
+                },
+                'path': 'topics/http/generic-views',
+                'release': cls.release,
+                'title': 'Generic views',
+            },
+            {
+                'metadata': {
+                    'body': (
+                        '<div class="section" id="s-django-1-2-1-release-notes">\n<span id="django-1-2-1-release-notes"></span>'
+                        '<h1>Django 1.2.1 release notes<a class="headerlink" href="#django-1-2-1-release-notes" title="Permalink to this headline">¶</a></h1>\n'
+                        '<p>Django 1.2.1 was released almost immediately after 1.2.0 to correct two small\n'
+                        'bugs: one was in the documentation packaging script, the other was a '
+                        '<a class="reference external" href="https://code.djangoproject.com/ticket/13560">bug</a> that\n'
+                        'affected datetime form field widgets when localization was enabled.</p>\n</div>\n'
+                    ),
+                    'breadcrumbs': [],
+                    'parents': 'releases',
+                    'slug': '1.2.1',
+                    'title': 'Django 1.2.1 release notes',
+                    'toc': '<ul>\n<li><a class="reference internal" href="#">Django 1.2.1 release notes</a></li>\n</ul>\n'
+                },
+                'path': 'releases/1.2.1',
+                'release': cls.release,
+                'title': 'Django 1.2.1 release notes'
+            },
+            {
+                'metadata': {
+                    'body': (
+                        '<div class="section" id="s-django-1-9-4-release-notes">\n<span id="django-1-9-4-release-notes"></span>'
+                        '<h1>Django 1.9.4 release notes<a class="headerlink" href="#django-1-9-4-release-notes" title="Permalink to this headline">¶</a></h1>\n'
+                        '<p><em>March 5, 2016</em></p>\n<p>Django 1.9.4 fixes a regression on Python 2 in the 1.9.3 security release\n'
+                        'where <code class="docutils literal"><span class="pre">utils.http.is_safe_url()</span></code> crashes on bytestring URLs '
+                        '(<a class="reference external" href="https://code.djangoproject.com/ticket/26308">#26308</a>).</p>\n</div>\n'
+                    ),
+                    'breadcrumbs': [],
+                    'parents': 'releases',
+                    'slug': '1.9.4',
+                    'title': 'Django 1.9.4 release notes',
+                    'toc': '<ul>\n<li><a class="reference internal" href="#">Django 1.9.4 release notes</a></li>\n</ul>\n'
+                },
+                'path': 'releases/1.9.4',
+                'release': cls.release,
+                'title': 'Django 1.9.4 release notes'
+            },
+            {
+                'metadata': {
+                    'body': (
+                        '<div class="section" id="s-generic-views">\n<span id="generic-views"></span>'
+                        '<h1>Vues génériques<a class="headerlink" href="#generic-views" title="Lien permanent vers ce titre">¶</a></h1>\n'
+                        '<p>Voir <a class="reference internal" href="../../../ref/class-based-views/">'
+                        '<span class="doc">API des vues intégrées fondées sur les classes.</span></a>.</p>\n</div>\n'
+                    ),
+                    'breadcrumbs': [],
+                    'parents': 'topics http',
+                    'slug': 'generic-views',
+                    'title': 'Vues génériques',
+                    'toc': '<ul>\n<li><a class="reference internal" href="#">Vues génériques</a></li>\n</ul>\n'
+                },
+                'path': 'topics/http/generic-views',
+                'release': cls.release_fr,
+                'title': 'Vues génériques',
+            },
+            {
+                'metadata': {
+                    'body': (
+                        '<div class="section" id="s-django-1-2-1-release-notes">\n<span id="django-1-2-1-release-notes"></span>'
+                        '<h1>Notes de publication de Django 1.2.1'
+                        '<a class="headerlink" href="#django-1-2-1-release-notes" title="Lien permanent vers ce titre">¶</a></h1>\n'
+                        '<p>Django 1.2.1 was released almost immediately after 1.2.0 to correct two small\n'
+                        'bugs: one was in the documentation packaging script, the other was a '
+                        '<a class="reference external" href="https://code.djangoproject.com/ticket/13560">bug</a> that\n'
+                        'affected datetime form field widgets when localization was enabled.</p>\n</div>\n'
+                    ),
+                    'breadcrumbs': [],
+                    'parents': 'releases',
+                    'slug': '1.2.1',
+                    'title': 'Notes de publication de Django 1.2.1',
+                    'toc': '<ul>\n<li><a class="reference internal" href="#">Notes de publication de Django 1.2.1</a></li>\n</ul>\n',
+                },
+                'path': 'releases/1.2.1',
+                'release': cls.release_fr,
+                'title': 'Notes de publication de Django 1.2.1',
+            },
+            {
+                'metadata': {
+                    'body': (
+                        '<div class="section" id="s-django-1-9-4-release-notes">\n<span id="django-1-9-4-release-notes"></span>'
+                        '<h1>Notes de publication de Django 1.9.4'
+                        '<a class="headerlink" href="#django-1-9-4-release-notes" title="Lien permanent vers ce titre">¶</a></h1>\n'
+                        '<p><em>March 5, 2016</em></p>\n<p>Django 1.9.4 fixes a regression on Python 2 in the 1.9.3 security release\n'
+                        'where <code class="docutils literal"><span class="pre">utils.http.is_safe_url()</span></code> crashes on bytestring URLs '
+                        '(<a class="reference external" href="https://code.djangoproject.com/ticket/26308">#26308</a>).</p>\n</div>\n'
+                    ),
+                    'breadcrumbs': [],
+                    'parents': 'releases',
+                    'slug': '1.9.4',
+                    'title': 'Notes de publication de Django 1.9.4',
+                    'toc': '<ul>\n<li><a class="reference internal" href="#">Notes de publication de Django 1.9.4</a></li>\n</ul>\n',
+                },
+                'path': 'releases/1.9.4',
+                'release': cls.release_fr,
+                'title': 'Notes de publication de Django 1.9.4',
+            }
+        ]
+        Document.objects.bulk_create(((Document(**doc) for doc in documents)))
+        Document.objects.update(search=DOCUMENT_SEARCH_VECTOR)
+
+    def test_search(self):
+        query_text = 'django'
+        document_queryset = Document.objects.search(query_text, self.release).values_list('title', 'rank')
+        document_list = [('Django 1.2.1 release notes', 0.969828), ('Django 1.9.4 release notes', 0.949088)]
+        self.assertSequenceEqual(list(document_queryset), document_list)
+
+    def test_multilingual_search(self):
+        query_text = 'publication'
+        queryset = Document.objects.search(query_text, self.release_fr).values_list('title', 'rank')
+        self.assertSequenceEqual(queryset, [
+            ('Notes de publication de Django 1.2.1', 1.06933),
+            ('Notes de publication de Django 1.9.4', 1.04587),
+        ])
+
+    def test_empty_search(self):
+        self.assertSequenceEqual(Document.objects.search('', self.release), [])

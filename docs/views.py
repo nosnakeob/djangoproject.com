@@ -3,19 +3,19 @@ import json
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.sitemaps.views import x_robots_tag
 from django.contrib.sites.models import Site
-from django.core.paginator import InvalidPage
+from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render
-from django.utils.translation import activate, ugettext_lazy as _
+from django.template.response import TemplateResponse
+from django.utils.translation import activate, gettext_lazy as _
 from django.views import static
 from django.views.decorators.cache import cache_page
 from django_hosts.resolvers import reverse
-from elasticsearch_dsl import query
 
 from .forms import DocSearchForm
 from .models import Document, DocumentRelease
-from .search import DocumentDocType, SearchPaginator
 from .utils import get_doc_path_or_404, get_doc_root_or_404
 
 SIMPLE_SEARCH_OPERATORS = ['+', '|', '-', '"', '*', '(', ')', '~']
@@ -46,8 +46,7 @@ def document(request, lang, version, url):
     except UnicodeEncodeError:
         raise Http404
 
-    if lang != 'en':
-        activate(lang)
+    activate(lang)
 
     canonical_version = DocumentRelease.objects.current_version()
     canonical = version == canonical_version
@@ -89,7 +88,16 @@ def document(request, lang, version, url):
         'update_date': datetime.datetime.fromtimestamp((docroot.joinpath('last_build')).stat().st_mtime),
         'redirect_from': request.GET.get('from', None),
     }
-    return render(request, template_names, context)
+    response = render(request, template_names, context)
+    # Tell Fastly to re-fetch from the origin once a week (we'll invalidate the cache sooner if needed)
+    response['Surrogate-Control'] = 'max-age=%d' % (7 * 24 * 60 * 60)
+    return response
+
+
+if not settings.DEBUG:
+    # Specify a dedicated cache for docs pages that need to be purged after docs rebuilds
+    # (see docs/management/commands/update_docs.py):
+    document = cache_page(settings.CACHE_MIDDLEWARE_SECONDS, cache='docs-pages')(document)
 
 
 def pot_file(request, pot_name):
@@ -145,6 +153,9 @@ def search_results(request, lang, version, per_page=10, orphans=3):
         release = DocumentRelease.objects.get_by_version_and_lang(version, lang)
     except DocumentRelease.DoesNotExist:
         raise Http404
+
+    activate(lang)
+
     form = DocSearchForm(request.GET or None, release=release)
 
     context = {
@@ -160,36 +171,14 @@ def search_results(request, lang, version, per_page=10, orphans=3):
 
         if q:
             # catch queries that are coming from browser search bars
-            exact = (DocumentDocType.index_queryset()
-                                    .filter(release=release, title=q)
-                                    .first())
+            exact = Document.objects.filter(release=release, title=q).first()
             if exact is not None:
                 return redirect(exact)
 
-            # let's just use simple queries since they allow some
-            # neat syntaxes for exclusion etc. For more info see
-            # http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/query-dsl-simple-query-string-query.html
-            should = [
-                query.Common(_all={'query': q, 'cutoff_frequency': 0.001}),
-                query.SimpleQueryString(fields=['title', '_all'],
-                                        query=q,
-                                        default_operator='and'),
-            ]
-
-            # then apply the queries and filter out anything not matching
-            # the wanted version and language, also highlight the content
-            # and order the highlighted snippets by score so that the most
-            # fitting result is used
-            results = (DocumentDocType.search()
-                                      .query(query.Bool(should=should))
-                                      .filter('term', release__lang=release.lang)
-                                      .filter('term', release__version=release.version)
-                                      .highlight_options(order='score')
-                                      .highlight('content_raw')
-                                      .extra(min_score=.01))
+            results = Document.objects.search(q, release)
 
             page_number = request.GET.get('page') or 1
-            paginator = SearchPaginator(results, per_page=per_page, orphans=orphans)
+            paginator = Paginator(results, per_page=per_page, orphans=orphans)
 
             try:
                 page_number = int(page_number)
@@ -214,9 +203,6 @@ def search_results(request, lang, version, per_page=10, orphans=3):
                 'paginator': paginator,
             })
 
-    if release.lang != 'en':
-        activate(release.lang)
-
     return render(request, 'docs/search_results.html', context)
 
 
@@ -235,32 +221,30 @@ def search_suggestions(request, lang, version, per_page=20):
     except DocumentRelease.DoesNotExist:
         raise Http404
 
+    activate(lang)
+
     form = DocSearchForm(request.GET or None, release=release)
     suggestions = []
 
     if form.is_valid():
         q = form.cleaned_data.get('q')
         if q:
-            search = DocumentDocType.search()
-            search = (search.query(query.SimpleQueryString(fields=['title^10',
-                                                                   'content'],
-                                                           query=q,
-                                                           analyzer='stop',
-                                                           default_operator='and'))
-                            .filter('term', release__lang=release.lang)
-                            .filter('term', release__version=release.version)
-                            .source(includes=['title']))
-
+            results = Document.objects.filter(
+                release__lang=release.lang,
+            ).filter(
+                release__release__version=release.version,
+            ).filter(
+                title__contains=q,
+            )
             suggestions.append(q)
             titles = []
             links = []
             content_type = ContentType.objects.get_for_model(Document)
-            results = search[0:per_page].execute()
             for result in results:
                 titles.append(result.title)
                 kwargs = {
                     'content_type_id': content_type.pk,
-                    'object_id': result.meta.id,
+                    'object_id': result.id,
                 }
                 links.append(reverse('contenttypes-shortcut', kwargs=kwargs))
             suggestions.append(titles)
@@ -283,6 +267,9 @@ def search_description(request, lang, version):
         release = DocumentRelease.objects.get_by_version_and_lang(version, lang)
     except DocumentRelease.DoesNotExist:
         raise Http404
+
+    activate(lang)
+
     context = {
         'site': Site.objects.get_current(),
         'release': release,
@@ -294,3 +281,21 @@ def search_description(request, lang, version):
 if not settings.DEBUG:
     # 1 week because there is no need to render it more often
     search_description = cache_page(60 * 60 * 24 * 7)(search_description)
+
+
+@x_robots_tag
+def sitemap_index(request, sitemaps):
+    """
+    Simplified version of django.contrib.sitemaps.views.index that uses
+    django_hosts for URL reversing.
+    """
+    sites = []
+    for section in sitemaps.keys():
+        sitemap_url = reverse('document-sitemap', host='docs', kwargs={'section': section})
+        sites.append(sitemap_url)
+    return TemplateResponse(
+        request,
+        'sitemap_index.xml',
+        {'sitemaps': sites},
+        content_type='application/xml',
+    )

@@ -9,10 +9,10 @@ collectstatics: compile-scss
 	./manage.py collectstatic --noinput
 
 compile-scss:
-	sassc $(SCSS)/output.scss $(STATIC)/css/output.css -s compressed
+	pysassc $(SCSS)/output.scss $(STATIC)/css/output.css -s compressed
 
 compile-scss-debug:
-	sassc $(SCSS)/output.scss $(STATIC)/css/output.css --sourcemap
+	pysassc $(SCSS)/output.scss $(STATIC)/css/output.css --sourcemap
 
 watch-scss:
 	watchmedo shell-command --patterns=*.scss --recursive --command="make compile-scss-debug" $(SCSS)
@@ -34,10 +34,10 @@ ci: test
 	@coverage report
 
 isort:
-	isort -rc $(APP_LIST)
+	isort $(APP_LIST)
 
 isort-check:
-	isort -c -rc $(APP_LIST)
+	isort -c $(APP_LIST)
 
 $(JQUERY_FLOT)/jquery.flot.min.js: $(JQUERY_FLOT)
 	cat $(JQUERY_FLOT)/jquery.flot.js $(JQUERY_FLOT)/jquery.flot.time.js > $(JQUERY_FLOT)/jquery.flot.concat.js

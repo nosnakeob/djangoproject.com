@@ -9,7 +9,7 @@ from django_hosts.resolvers import reverse
 from sorl.thumbnail import ImageField, get_thumbnail
 
 GOAL_AMOUNT = Decimal("200000.00")
-GOAL_START_DATE = datetime.date(2015, 12, 17)
+GOAL_START_DATE = datetime.date(datetime.datetime.today().year, 1, 1)
 DISPLAY_DONOR_DAYS = 365
 DEFAULT_DONATION_AMOUNT = 50
 LEADERSHIP_LEVEL_AMOUNT = Decimal("1000.00")
@@ -43,11 +43,12 @@ class FundraisingModel(models.Model):
         self.modified = timezone.now()
         if not self.id:
             self.id = crypto.get_random_string(length=12)
-        return super(FundraisingModel, self).save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
 
 class DjangoHero(FundraisingModel):
     email = models.EmailField(blank=True)
+    # TODO: Make this unique.
     stripe_customer_id = models.CharField(max_length=100, blank=True)
     logo = ImageField(upload_to="fundraising/logos/", blank=True)
     url = models.URLField(blank=True, verbose_name='URL')
@@ -66,7 +67,8 @@ class DjangoHero(FundraisingModel):
         default=False,
         verbose_name="Agreed to being contacted by DSF?",
     )
-    approved = models.NullBooleanField(
+    approved = models.BooleanField(
+        null=True,
         verbose_name="Name, URL, and Logo approved?",
     )
 
@@ -85,7 +87,7 @@ class DjangoHero(FundraisingModel):
 
     @property
     def thumbnail(self):
-        return get_thumbnail(self.logo, '170x170', quality=100)
+        return get_thumbnail(self.logo, '170x170', quality=100) if self.logo else None
 
     @property
     def name_with_fallback(self):
@@ -152,7 +154,7 @@ class InKindDonor(models.Model):
 
     @property
     def thumbnail(self):
-        return get_thumbnail(self.logo, '170x170', quality=100)
+        return get_thumbnail(self.logo, '170x170', quality=100) if self.logo else None
 
 
 @receiver(post_save, sender=DjangoHero)

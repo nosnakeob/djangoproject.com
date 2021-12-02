@@ -13,7 +13,7 @@
           <text x="50%" y="43%" alignment-baseline="middle" text-anchor="middle">{{ goal_percent|floatformat:'0' }}%</text>
         </g>
         <foreignObject>
-          <img src="{% static 'img/fundraising-heart.png' %}" />
+          <img src="{% static 'img/fundraising-heart.svg' %}" />
         </foreignObject>
       </switch>
     </svg>
@@ -22,15 +22,16 @@
   <div class="description">
     <ul>
       <li><strong>{{ goal_percent }}% funded</strong></li>
-      <li><strong>${{ donated_amount|intcomma }} donated</strong> of US&nbsp;${{ goal_amount|intcomma }} goal for 2016</li>
+      <li><strong>${{ donated_amount|intcomma }} donated</strong> of US&nbsp;${{ goal_amount|intcomma }} goal for
+        {{ goal_start_date|date:"Y" }}</li>
       <li><strong>{{ total_donors }} donor{{ total_donors|pluralize:",s" }}</strong></li>
     </ul>
 
     <div class="donate">
       <form
-            method="get"
-            class="stripe-custom-checkout"
-            action="{% url "fundraising:donate" %}"
+            method="post"
+            class="stripe-donation"
+            action-for-donation-session="{% url "fundraising:donation-session" %}"
             data-stripe-key="{{ stripe_publishable_key }}"
             data-stripe-icon="{% static 'img/dj-stripe-icon.jpg' %}"
             data-is-logged-in="{{ user.is_authenticated }}"
@@ -42,6 +43,7 @@
         <div class="custom-donation">
           <span class="prefix">US $ (integer only)</span>
         </div>
+        {{ form.captcha }}
         <input id="donate-button" type="submit" value="Donate monthly" class="cta" />
       </form>
     </div>

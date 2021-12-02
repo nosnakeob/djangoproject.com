@@ -1,11 +1,9 @@
 import stripe
+from captcha.fields import ReCaptchaField
+from captcha.widgets import ReCaptchaV3
 from django import forms
-from django.conf import settings
-from django.core.mail import send_mail
-from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
-from .exceptions import DonationError
 from .models import (
     INTERVAL_CHOICES, LEADERSHIP_LEVEL_AMOUNT, DjangoHero, Donation,
 )
@@ -32,7 +30,7 @@ class DjangoHeroForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(
             attrs={
-                'placeholder': 'Where are you located? (optional; will not be displayd)',
+                'placeholder': 'Where are you located? (optional; will not be displayed)',
             },
         )
     )
@@ -74,7 +72,7 @@ class DjangoHeroForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-        super(DjangoHeroForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.checkbox_fields = []
         self.radio_select_fields = []
 
@@ -106,11 +104,14 @@ class StripeTextInput(forms.TextInput):
 
     def render(self, name, *args, **kwargs):
         kwargs = self._add_data_stripe_attr(name, kwargs)
-        rendered = super(StripeTextInput, self).render(name, *args, **kwargs)
+        rendered = super().render(name, *args, **kwargs)
         return mark_safe(self._strip_name_attr(rendered, name))
 
 
 class DonateForm(forms.Form):
+    """
+    Used to generate the HTML form in the fundraising page.
+    """
     AMOUNT_CHOICES = (
         (25, 'US $25'),
         (50, 'US $50'),
@@ -126,9 +127,13 @@ class DonateForm(forms.Form):
 
     amount = forms.ChoiceField(choices=AMOUNT_CHOICES)
     interval = forms.ChoiceField(choices=INTERVAL_CHOICES)
+    captcha = ReCaptchaField(widget=ReCaptchaV3)
 
 
 class DonationForm(forms.ModelForm):
+    """
+    Used in the manage donations view.
+    """
     subscription_amount = forms.DecimalField(max_digits=9, decimal_places=2, required=True)
     # here we're removing "onetime" option from interval choices:
     interval = forms.ChoiceField(choices=INTERVAL_CHOICES[:3], required=True)
@@ -145,121 +150,28 @@ class DonationForm(forms.ModelForm):
         # Send data to Stripe
         customer = stripe.Customer.retrieve(donation.stripe_customer_id)
         subscription = customer.subscriptions.retrieve(donation.stripe_subscription_id)
+        # TODO: Setting the plan is deprecated — use Price API instead.
         subscription.plan = interval
         subscription.quantity = int(amount)
+
         subscription.save()
 
         return donation
 
 
 class PaymentForm(forms.Form):
+    """
+    Used to validate values when configuring the Stripe Session.
+
+    `amount` can be any integer, so a ChoiceField is not appropriate.
+    """
+    captcha = ReCaptchaField(widget=ReCaptchaV3)
     amount = forms.IntegerField(
         required=True,
         min_value=1,  # Minimum payment from Stripe API
+        max_value=1_000_000,  # Reject clearly unrealistic amounts.
     )
     interval = forms.ChoiceField(
         required=True,
         choices=INTERVAL_CHOICES,
     )
-    receipt_email = forms.CharField(required=True)
-    # added by the donation form JavaScript via Stripe.js
-    stripe_token = forms.CharField(widget=forms.HiddenInput())
-
-    def make_donation(self):
-        receipt_email = self.cleaned_data['receipt_email']
-        amount = self.cleaned_data['amount']
-        stripe_token = self.cleaned_data['stripe_token']
-        interval = self.cleaned_data['interval']
-
-        hero = DjangoHero.objects.filter(email=receipt_email).first()
-
-        try:
-            if hero and hero.stripe_customer_id:
-                # Update old customer with new payment source
-                customer = stripe.Customer.retrieve(hero.stripe_customer_id)
-                customer.source = stripe_token
-                customer.save()
-            else:
-                customer = stripe.Customer.create(card=stripe_token, email=receipt_email)
-
-            if interval == 'onetime':
-                subscription_id = ''
-                charge = stripe.Charge.create(
-                    amount=int(amount * 100),
-                    currency='usd',
-                    customer=customer.id,
-                    receipt_email=receipt_email,
-                )
-                charge_id = charge.id
-            else:
-                charge_id = ''
-                subscription = customer.subscriptions.create(
-                    plan=interval,
-                    quantity=int(amount),
-                )
-                subscription_id = subscription.id
-
-        except stripe.error.CardError as card_error:
-            raise DonationError(
-                "We're sorry but we had problems charging your card. "
-                'Here is what Stripe replied: "%s"' % str(card_error))
-
-        except stripe.error.InvalidRequestError:
-            # Invalid parameters were supplied to Stripe's API
-            raise DonationError(
-                "We're sorry but something went wrong while processing "
-                "your card details. No charge was done. Please try "
-                "again or get in touch with us.")
-
-        except stripe.error.APIConnectionError:
-            # Network communication with Stripe failed
-            raise DonationError(
-                "We're sorry but we have technical difficulties "
-                "reaching our payment processor Stripe. No charge "
-                "was done. Please try again later.")
-
-        except stripe.error.AuthenticationError:
-            # Authentication with Stripe's API failed
-            raise
-
-        except (stripe.StripeError, Exception):
-            # The card has been declined, we want to see what happened
-            # in Sentry
-            raise
-
-        else:
-            if not hero:
-                hero = DjangoHero.objects.create(
-                    email=receipt_email,
-                    stripe_customer_id=customer.id,
-                )
-            # Finally create the donation and return it
-            donation = Donation.objects.create(
-                interval=interval,
-                subscription_amount=amount,
-                stripe_customer_id=customer.id,
-                stripe_subscription_id=subscription_id,
-                receipt_email=receipt_email,
-                donor=hero,
-            )
-            # Only one-time donations are created here. Recurring payments are
-            # created by Stripe webhooks.
-            if charge_id:
-                donation.payment_set.create(
-                    amount=amount,
-                    stripe_charge_id=charge_id,
-                )
-
-            # Send an email message about managing your donation
-            message = render_to_string(
-                'fundraising/email/thank-you.html',
-                {'donation': donation}
-            )
-            send_mail(
-                'Thank you for your donation to the Django Software Foundation',
-                message,
-                settings.FUNDRAISING_DEFAULT_FROM_EMAIL,
-                [donation.receipt_email]
-            )
-
-            return donation
