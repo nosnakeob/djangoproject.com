@@ -119,8 +119,21 @@ class TracTicketMetric(Metric):
     query = models.TextField()
 
     def fetch(self):
-        s = xmlrpc.client.ServerProxy(settings.TRAC_RPC_URL)
-        return len(s.ticket.query(self.query + "&max=0"))
+        try:
+            s = xmlrpc.client.ServerProxy(settings.TRAC_RPC_URL)
+            return len(s.ticket.query(self.query + "&max=0"))
+        except xmlrpc.client.ProtocolError as e:
+            # 记录错误并返回一个默认值
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"无法连接到Trac RPC: {e}")
+            return 0
+        except Exception as e:
+            # 处理其他可能的错误
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Trac查询出错: {e}")
+            return 0
 
     def link(self):
         return "%squery?%s&desc=1&order=changetime" % (settings.TRAC_URL, self.query)

@@ -40,7 +40,10 @@ DATABASES = {
         'PASSWORD': SECRETS.get('db_password', ''),
         'PORT': SECRETS.get('db_port', ''),
         'OPTIONS': {
-            'sslmode': 'disable',
+            'sslmode': 'verify-full',
+            'sslcert': '/app/blog/ssl/acra-client.crt',
+            'sslkey': '/app/blog/ssl/acra-client.key',
+            'sslrootcert': '/app/blog/ssl/root.crt',
         },
     },
     'trac': {
@@ -51,7 +54,10 @@ DATABASES = {
         'PASSWORD': SECRETS.get('trac_db_password', ''),
         'PORT': SECRETS.get('trac_db_port', ''),
         'OPTIONS': {
-            'sslmode': 'disable',
+            'sslmode': 'verify-full',
+            'sslcert': '/app/blog/ssl/acra-client.crt',
+            'sslkey': '/app/blog/ssl/acra-client.key',
+            'sslrootcert': '/app/blog/ssl/root.crt',
         },
     }
 }
@@ -310,3 +316,22 @@ TRAC_URL = "https://code.djangoproject.com/"
 # search settings
 ES_HOST = SECRETS.get('es_host', 'localhost:9200')
 ACRA_SERVER_PUBLIC_KEY = b64decode(SECRETS.get('acra_storage_public_key', 'default_public_key'))
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'django_error.log',
+        },
+    },
+    'loggers': {
+        'dashboard.models': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
