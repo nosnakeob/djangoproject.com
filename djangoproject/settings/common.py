@@ -310,8 +310,8 @@ THUMBNAIL_PRESERVE_FORMAT = True
 THUMBNAIL_ALTERNATIVE_RESOLUTIONS = [2]
 
 # dashboard settings
-TRAC_RPC_URL = "https://code.djangoproject.com/rpc"
-TRAC_URL = "https://code.djangoproject.com/"
+TRAC_RPC_URL = "http://localhost:8000/rpc"
+TRAC_URL = "http://localhost:8000/"
 
 # search settings
 ES_HOST = SECRETS.get('es_host', 'localhost:9200')

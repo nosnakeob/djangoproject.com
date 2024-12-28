@@ -42,7 +42,7 @@ DOCS_BUILD_ROOT = DATA_DIR.joinpath('djangodocs')
 
 # django-hosts settings
 
-PARENT_HOST = 'djangoproject.example:8000'
+PARENT_HOST = 'localhost:8000'
 
 # django-push settings
 
