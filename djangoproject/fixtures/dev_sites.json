@@ -1,16 +1,16 @@
 [
     {
         "fields": {
-            "domain": "localhost:8000",
-            "name": "localhost:8000"
+            "domain": "www.localhost:8000",
+            "name": "www.localhost:8000"
         },
         "model": "sites.site",
         "pk": 1
     },
     {
         "fields": {
-            "domain": "localhost:8000",
-            "name": "localhost:8000"
+            "domain": "docs.localhost:8000",
+            "name": "docs.localhost:8000"
         },
         "model": "sites.site",
         "pk": 2

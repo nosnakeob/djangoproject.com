@@ -1,12 +1,14 @@
 from .common import *  # noqa
 
 ALLOWED_HOSTS = [
-    'www.djangoproject.example',
-    'djangoproject.example',
-    'docs.djangoproject.example',
-    'dashboard.djangoproject.example',
     'localhost',
     'localhost:8000',
+    'www.localhost',
+    'www.localhost:8000',
+    'docs.localhost',
+    'docs.localhost:8000',
+    'dashboard.localhost',
+    'dashboard.localhost:8000',
     '127.0.0.1',
     '[::1]'
 ] + SECRETS.get('allowed_hosts', [])
